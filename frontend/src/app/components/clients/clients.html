@@ -1,0 +1,57 @@
+<div class="container">
+  <div class="header">
+    <h2>👥 Clients</h2>
+    <button class="btn-add" (click)="openForm()">+ Ajouter</button>
+  </div>
+
+  <div class="error" *ngIf="error">{{ error }}</div>
+  <div class="loading" *ngIf="loading">Chargement...</div>
+
+  <!-- Formulaire -->
+  <div class="modal" *ngIf="showForm">
+    <div class="modal-content">
+      <h3>{{ editMode ? 'Modifier' : 'Ajouter' }} un client</h3>
+
+      <label>Nom complet</label>
+      <input [(ngModel)]="form.fullName" placeholder="Nom complet" />
+
+      <label>Email</label>
+      <input [(ngModel)]="form.email" placeholder="Email" type="email" />
+
+      <label>Téléphone</label>
+      <input [(ngModel)]="form.phone" placeholder="Téléphone" />
+
+      <div class="modal-actions">
+        <button class="btn-save"   (click)="submitForm()">💾 Sauvegarder</button>
+        <button class="btn-cancel" (click)="cancelForm()">✖ Annuler</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <table *ngIf="!loading && clients.length > 0">
+    <thead>
+      <tr>
+        <th>Nom</th>
+        <th>Email</th>
+        <th>Téléphone</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let client of clients">
+        <td>{{ client.fullName }}</td>
+        <td>{{ client.email }}</td>
+        <td>{{ client.phone }}</td>
+        <td class="actions">
+          <button class="btn-edit"   (click)="editClient(client)">✏️</button>
+          <button class="btn-delete" (click)="deleteClient(client.id!)">🗑️</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="empty" *ngIf="!loading && clients.length === 0">
+    Aucun client trouvé.
+  </div>
+</div>

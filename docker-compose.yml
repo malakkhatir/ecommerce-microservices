@@ -1,0 +1,172 @@
+services:
+
+  consul:
+    image: consul:1.15
+    container_name: consul
+    ports:
+      - "8500:8500"
+    command: agent -server -bootstrap-expect=1 -ui -client=0.0.0.0
+    networks:
+      - microservices-net
+
+  mongodb:
+    image: mongo:7.0
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    networks:
+      - microservices-net
+
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    ports:
+      - "3307:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=OrderDb
+    networks:
+      - microservices-net
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    environment:
+      - ZOOKEEPER_CLIENT_PORT=2181
+      - ZOOKEEPER_TICK_TIME=2000
+    networks:
+      - microservices-net
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:29092,EXTERNAL://0.0.0.0:9092
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka:29092,EXTERNAL://localhost:9092
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+    networks:
+      - microservices-net
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    ports:
+      - "9090:9090"
+    networks:
+      - microservices-net
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - microservices-net
+
+  # ========== PRODUCT SERVICE ==========
+  product-service:
+    image: product-service:v1
+    container_name: product-service
+    ports:
+      - "5001:8080"
+    environment:
+      - ASPNETCORE_URLS=http://0.0.0.0:8080          # 👈 AJOUT
+      - Consul__Address=http://consul:8500
+      - Consul__ServiceName=ProductService
+      - Consul__ServiceHost=product-service
+      - Consul__ServicePort=8080
+      - MongoDbSettings__ConnectionString=mongodb://mongodb:27017
+      - MongoDbSettings__DatabaseName=ProductDb
+    depends_on:
+      - consul
+      - mongodb
+    networks:
+      - microservices-net
+
+  # ========== CLIENT SERVICE ==========
+  client-service:
+    image: client-service:v1
+    container_name: client-service
+    ports:
+      - "5003:8080"
+    environment:
+      - ASPNETCORE_URLS=http://0.0.0.0:8080          # 👈 AJOUT
+      - Consul__Address=http://consul:8500
+      - Consul__ServiceName=ClientService
+      - Consul__ServiceHost=client-service
+      - Consul__ServicePort=8080
+      - MongoDbSettings__ConnectionString=mongodb://mongodb:27017
+      - MongoDbSettings__DatabaseName=ClientDb
+      - Kafka__BootstrapServers=kafka:29092
+    depends_on:
+      - consul
+      - mongodb
+      - kafka
+    networks:
+      - microservices-net
+
+  # ========== ORDER SERVICE ==========
+  order-service:
+    image: order-service:v1
+    container_name: order-service
+    ports:
+      - "5002:8080"
+    environment:
+      - ASPNETCORE_URLS=http://0.0.0.0:8080          # 👈 AJOUT
+      - Consul__Address=http://consul:8500
+      - Consul__ServiceName=OrderService
+      - Consul__ServiceHost=order-service
+      - Consul__ServicePort=8080
+      - ConnectionStrings__DefaultConnection=server=mysql;port=3306;database=OrderDb;user=root;password=root
+      - Kafka__BootstrapServers=kafka:29092
+    depends_on:
+      - consul
+      - mysql
+      - kafka
+    networks:
+      - microservices-net
+
+  # ========== API GATEWAY ==========
+  api-gateway:
+    image: api-gateway:v1
+    container_name: api-gateway
+    build:
+      context: ./ApiGateway
+      dockerfile: Dockerfile
+    ports:
+      - "5000:8080"
+    environment:
+      - ASPNETCORE_URLS=http://0.0.0.0:8080          # déjà présent
+      - Consul__Address=http://consul:8500
+      - Consul__ServiceName=ApiGateway
+      - Consul__ServiceHost=api-gateway
+      - Consul__ServicePort=8080
+    depends_on:
+      - consul
+    networks:
+      - microservices-net
+
+networks:
+  microservices-net:
+    driver: bridge
+
+volumes:
+  prometheus-data:
+  grafana-data:

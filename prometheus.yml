@@ -1,0 +1,20 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'api-gateway'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['api-gateway:8080']
+
+  - job_name: 'product-service'
+    static_configs:
+      - targets: ['product-service:8080']
+
+  - job_name: 'order-service'
+    static_configs:
+      - targets: ['order-service:8080']
+
+  - job_name: 'client-service'
+    static_configs:
+      - targets: ['client-service:8080']

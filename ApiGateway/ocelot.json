@@ -1,0 +1,78 @@
+{
+  "Routes": [
+    {
+      "UpstreamPathTemplate": "/clients/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "DownstreamPathTemplate": "/api/clients/{everything}",
+      "DownstreamScheme": "http",
+      "ServiceName": "ClientService",
+      "UseServiceDiscovery": true,
+      "LoadBalancerOptions": {
+        "Type": "RoundRobin"
+      }
+    },
+    {
+      "UpstreamPathTemplate": "/clients",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "DownstreamPathTemplate": "/api/clients",
+      "DownstreamScheme": "http",
+      "ServiceName": "ClientService",
+      "UseServiceDiscovery": true,
+      "LoadBalancerOptions": {
+        "Type": "RoundRobin"
+      }
+    },
+    {
+      "UpstreamPathTemplate": "/products/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "DownstreamPathTemplate": "/api/products/{everything}",
+      "DownstreamScheme": "http",
+      "ServiceName": "ProductService",
+      "UseServiceDiscovery": true,
+      "LoadBalancerOptions": {
+        "Type": "RoundRobin"
+      }
+    },
+    {
+      "UpstreamPathTemplate": "/products",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "DownstreamPathTemplate": "/api/products",
+      "DownstreamScheme": "http",
+      "ServiceName": "ProductService",
+      "UseServiceDiscovery": true,
+      "LoadBalancerOptions": {
+        "Type": "RoundRobin"
+      }
+    },
+    {
+      "UpstreamPathTemplate": "/orders/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "DownstreamPathTemplate": "/api/orders/{everything}",
+      "DownstreamScheme": "http",
+      "ServiceName": "OrderService",
+      "UseServiceDiscovery": true,
+      "LoadBalancerOptions": {
+        "Type": "RoundRobin"
+      }
+    },
+    {
+      "UpstreamPathTemplate": "/orders",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ],
+      "DownstreamPathTemplate": "/api/orders",
+      "DownstreamScheme": "http",
+      "ServiceName": "OrderService",
+      "UseServiceDiscovery": true,
+      "LoadBalancerOptions": {
+        "Type": "RoundRobin"
+      }
+    }
+  ],
+  "GlobalConfiguration": {
+    "BaseUrl": "http://localhost:5063",
+    "ServiceDiscoveryProvider": {
+      "Type": "Consul",
+      "Host": "consul",
+      "Port": 8500
+    }
+  }
+}

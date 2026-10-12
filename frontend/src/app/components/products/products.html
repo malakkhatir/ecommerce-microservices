@@ -1,0 +1,59 @@
+<div class="container">
+  <div class="header">
+    <h2>📦 Produits</h2>
+    <button class="btn-add" (click)="showForm = !showForm">+ Ajouter</button>
+  </div>
+
+  <div class="error" *ngIf="error">{{ error }}</div>
+
+  <!-- Formulaire -->
+  <div class="form-card" *ngIf="showForm">
+    <h3>Nouveau produit</h3>
+
+    <label>Nom</label>
+    <input [(ngModel)]="form.name" placeholder="Nom du produit" />
+
+    <label>Prix (€)</label>
+    <input [(ngModel)]="form.price" type="number" placeholder="Prix" />
+
+    <label>Stock</label>
+    <input [(ngModel)]="form.stock" type="number" placeholder="Stock" />
+
+    <div class="form-actions">
+      <button class="btn-save"   (click)="submitForm()">💾 Sauvegarder</button>
+      <button class="btn-cancel" (click)="showForm = false">✖ Annuler</button>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="loading" *ngIf="loading">Chargement...</div>
+
+  <table *ngIf="!loading && products.length > 0">
+    <thead>
+      <tr>
+        <th>Nom</th>
+        <th>Prix</th>
+        <th>Stock</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let product of products">
+        <td>{{ product.name }}</td>
+        <td>{{ product.price | currency:'EUR' }}</td>
+        <td>
+          <span [class]="product.stock > 0 ? 'badge-ok' : 'badge-out'">
+            {{ product.stock > 0 ? product.stock + ' en stock' : 'Rupture' }}
+          </span>
+        </td>
+        <td>
+          <button class="btn-delete" (click)="deleteProduct(product.id!)">🗑️</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="empty" *ngIf="!loading && products.length === 0">
+    Aucun produit trouvé.
+  </div>
+</div>
